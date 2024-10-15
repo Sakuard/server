@@ -1,0 +1,19 @@
+{
+  "name": "chatroom-test",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "vitest"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.7.7",
+    "socket.io-client": "^4.8.0"
+  },
+  "devDependencies": {
+    "vtest": "^1.1.0"
+  }
+}
