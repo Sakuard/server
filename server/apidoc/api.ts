@@ -2,6 +2,8 @@
  * @swagger
  * /api/user/auth/v1:
  *  post:
+ *    tags:
+ *      - HTTP API
  *    summary: create a JWT token
  *    requestBody:
  *      required: true
@@ -36,6 +38,8 @@
  * @swagger
  * /api/user/chat/v1:
  *  post:
+ *    tags:
+ *      - HTTP API
  *    summary: send message to chatroom
  *    requestBody:
  *      required: true

@@ -9,3 +9,5 @@ npm run dev
 cd test
 npm run test
 ```
+
+於 http://localhost:3000/api/docs 可以看到 API 文件

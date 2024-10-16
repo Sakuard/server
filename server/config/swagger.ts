@@ -1,34 +1,22 @@
 import { Options } from 'swagger-jsdoc';
+import { Schema } from 'zod';
 
-export const swaggerAPIOptions: Options = {
+export const swaggerOptions: Options = {
     swaggerDefinition: {
         openapi: '3.0.0',
         info: {
-            title: 'Chat API',
+            title: 'ChatServer Restful API',
             version: '1.0.0',
             description: 'API documentation for the Chat application',
         },
         servers: [
             {
                 url: 'http://localhost:3000',
+                description: 'Restful API Server'
             },
-        ],
-    },
-    apis: ['./**/*.ts'], // Path to the API docs
-}
-
-
-export const swaggerSocketOptions: Options = {
-    swaggerDefinition: {
-        openapi: '3.0.0',
-        info: {
-            title: 'ChatServer Socket-API',
-            version: '1.0.0',
-            description: 'WebSocketAPI documentation for the Chat Server',
-        },
-        servers: [
             {
                 url: 'ws://localhost:3000',
+                description: 'WebSocket API Server'
             },
         ],
         components: {
@@ -50,22 +38,7 @@ export const swaggerSocketOptions: Options = {
                 }
             }
         },
-        paths: {
-            '/socketapi/user/join/v1': {
-                post: {
-                    summary: 'Client join chatroom',
-                    requestBody: {
-                        content: {
-                            'application/json': {
-                                schema: {
-                                    $ref: '#/components/schemas/SocketClient'
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        paths: {}
     },
-    apis: ['../**/*.ts'], // Path to the API docs
+    apis: ['./**/*.ts', '../**/*.ts'],
 }

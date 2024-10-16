@@ -5,7 +5,7 @@ import dotenv from 'dotenv'
 
 import swaggerJSDoc from 'swagger-jsdoc'
 import swaggerUi from 'swagger-ui-express'
-import {swaggerAPIOptions, swaggerSocketOptions} from './config/swagger'
+import {swaggerOptions} from './config/swagger'
 
 import { handleConnection, broadcastMessage } from "./socket";
 import * as $z from './schema/check'
@@ -21,11 +21,8 @@ const io = new Server(server);
 
 app.use(express.json());
 
-const swaggerAPISpec = swaggerJSDoc(swaggerAPIOptions);
-const swaggerSocketSpec = swaggerJSDoc(swaggerSocketOptions);
-app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerAPISpec));
-app.use('/socket/docs', swaggerUi.serve, swaggerUi.setup(swaggerSocketSpec));
-
+const swaggerSpec = swaggerJSDoc(swaggerOptions);
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.get("/", (req: Request, res: Response) => {
   res.send("Hello World6");
