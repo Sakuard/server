@@ -1,0 +1,24 @@
+stages:
+  - test
+  - build
+
+unit_test:
+  stage: test
+  image: node:18-alpine
+  script:
+    - cd server
+    - npm ci
+    - export JWT_KEY="$JWT_KEY" # 使用環境變數
+    - npm run test
+  variables:
+    JWT_KEY: $JWT_KEY # 確保變數在這裡可用
+
+build_image:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  script:
+    - docker build --build-arg JWT_KEY="$JWT_KEY" -t chat-server ./server/
+  variables:
+    JWT_KEY: $JWT_KEY # 如果需要在 build 階段使用
