@@ -1,23 +1,22 @@
-# 使用官方 Node.js 輕量版映像作為基礎
-FROM node:18-alpine
-
-# 設定工作目錄
+# Stage 1: Builder
+FROM node:18-alpine AS builder
 WORKDIR /usr/src/app
 
-# 複製 package.json 和 package-lock.json
 COPY package*.json ./
-
-# 安裝依賴包
 RUN npm install
 
-# 複製專案所有檔案進入容器
 COPY . .
-
-# 編譯 TypeScript
 RUN npx tsc
 
-# 開放服務的 Port
+# Stage 2: Production
+FROM node:18-alpine
+WORKDIR /usr/src/app
+
+# 複製 builder 階段編譯後的檔案和生產依賴
+COPY --from=builder /usr/src/app/dist ./dist
+COPY --from=builder /usr/src/app/package*.json ./
+COPY --from=builder /usr/src/app/node_modules ./node_modules
+
 EXPOSE 3000
 
-# 啟動應用程式
 CMD ["node", "dist/app.js"]
