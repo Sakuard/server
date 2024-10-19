@@ -13,6 +13,7 @@ FROM node:18-alpine
 WORKDIR /usr/src/app
 
 # 複製 builder 階段編譯後的檔案和生產依賴
+COPY --from=builder /usr/src/app/.env ./
 COPY --from=builder /usr/src/app/dist ./dist
 COPY --from=builder /usr/src/app/package*.json ./
 COPY --from=builder /usr/src/app/node_modules ./node_modules

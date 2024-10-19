@@ -22,3 +22,14 @@ cd server
 # 確保在 ./server 底下有設置好 .env
 docker run --env-file .env -p 3000:3000 chat-server
 ```
+
+### GitLab CI/CD 相關
+CI/CD 變數
+1. ENV_FILE:
+```json=
+{
+    Key: "ENV_FILE",
+    Value: "JWT_KEY:<your_jwt_key>",
+    Type: "File"
+}
+```

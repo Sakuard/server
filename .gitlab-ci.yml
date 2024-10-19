@@ -2,6 +2,10 @@ stages:
   - test
   - build
 
+variables:
+  CI_REPO: matt.lab/playground/server
+  TAG: latest
+
 unit_test:
   stage: test
   image: node:18-alpine
@@ -18,7 +22,17 @@ build_image:
   image: docker:latest
   services:
     - docker:dind
-  script:
-    - docker build --build-arg JWT_KEY="$JWT_KEY" -t chat-server ./server/
   variables:
-    JWT_KEY: $JWT_KEY # 如果需要在 build 階段使用
+    DOCKER_USERNAME: $DOCKER_USERNAME
+    DOCKER_PASSWORD: $DOCKER_PASSWORD
+    ENV_FILE: $ENV_FILE
+  before_script:
+    - cd server
+    - echo "$ENV_FILE" > .env
+  script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
+    - docker build -t $CI_REGISTRY/$CI_REPO:$TAG .
+    - docker push $CI_REGISTRY/$CI_REPO:$TAG
+  after_script:
+    - cd server
+    - rm .env
