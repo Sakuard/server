@@ -28,6 +28,10 @@ app.get("/", (req: Request, res: Response) => {
   res.send("Hello World6");
 });
 
+app.get('/test/', (req: Request, res: Response) => {
+  res.send("Testing msg");
+})
+
 app.post('/api/user/auth/v1', (req: Request, res: Response) => {
   try {
     const { username, role } = $z.JWT_Payload.parse(req.body)
@@ -37,11 +41,13 @@ app.post('/api/user/auth/v1', (req: Request, res: Response) => {
     })
     res.status(200).send({"status": "success", "token": token})
   } catch (e:any) {
-    if (e.issues) {
-      res.status(500).send({"status": "error", "msg": e.issues})
-    } else {
-      res.status(500).send({"status": "error", "msg": e})
-    }
+    // if (e.issues) {
+    //   res.status(500).send({"status": "error", "msg": e.issues})
+    // } else {
+    //   res.status(500).send({"status": "error", "msg": e})
+    // }
+    console.log(`\n[WARN]\napi: /api/user/auth/v1\nerror: ${e}\n`)
+    res.status(500).send({"status": "error", "msg": e})
   }
 })
 
@@ -54,11 +60,12 @@ app.post('/api/user/chat/v1', (req: Request, res: Response) => {
     console.log(`success`)
   } catch (e:any) {
     console.log(`\n[WARN]\napi: /api/user/chat/v1\nerror: ${e}\n`)
-    if (e.issues) {
-      res.status(500).send({"status": "error", "msg": e.issues})
-    } else {
-      res.status(500).send({"status": "error", "msg": e})
-    }
+    // if (e.issues) {
+    //   res.status(500).send({"status": "error", "msg": e.issues})
+    // } else {
+    //   res.status(500).send({"status": "error", "msg": e})
+    // }
+    res.status(500).send({"status": "error", "msg": e})
   }
 })
 
