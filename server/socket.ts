@@ -2,10 +2,12 @@ import { Server, Socket } from "socket.io";
 import { v4 as uuidv4 } from 'uuid'
 import { string, z } from 'zod'
 import dotenv from 'dotenv'
+import amqp from 'amqplib/callback_api'
 import * as $z from './schema/check'
 dotenv.config()
 
 import * as $auth from './auth'
+import { $MQ } from './rabbitmq'
 
 
 export interface SocketClient {
@@ -44,8 +46,9 @@ export function handleConnection(io: Server) {
                 socket.emit('socketapi/user/connection/test', 'test')
             })
             // user join chatroom
-            socket.on('socketapi/user/join/v1', (request: SocketClient) => {
-                joinChatroom(socket, request)
+            socket.on('socketapi/user/join/v1', (request: SocketClient, io) => {
+                console.log(`socketapi join: `,request)
+                joinChatroom(io, socket, request)
             })
     
             // user disconnect
@@ -61,67 +64,17 @@ export function handleConnection(io: Server) {
     }
 }
 
-export const broadcastMessage = (io: Server, msg: any, chatroom: string) => {
-    io.to(chatroom).emit('msg', msg)
-
-}
-
-const randomMatch = (socket: Socket, chatroom: string) => {
-    // 先確認是否有 randomChatroomQueue
-    if (randomChatroomQueue === "") {
-        console.log(`randomChatroomQueue: `, randomChatroomQueue)
-        chatroom = uuidv4()
-        randomChatroomQueue = chatroom
-        socket.join(chatroom)
-        socket.emit('socketapi/user/join/v1', {
-            "chatroom": chatroom
-        })
-    } else {
-        console.log(`randomChatroomQueue: `, randomChatroomQueue)
-        chatroom = randomChatroomQueue
-        socket.join(chatroom)
-        socket.emit('socketapi/user/join/v1', {
-            "chatroom": chatroom
-        })
-        randomChatroomQueue = ""
-    }
-}
-
-const getMatchChatroom = (socket: Socket, chatroom: string):string => {
-    let matchRoom:string = matchChatroomQueue.get(chatroom)!
-    socket.join(matchRoom)
-    socket.emit('socketapi/user/join/v1', {
-        "chatroom": matchRoom
-    })
-    matchChatroomQueue.delete(chatroom)
-    return matchRoom
-}
-const queMatchChatroom = (socket: Socket, chatroom: string):string => {
-    let queRoom = `${chatroom}-${uuidv4()}`
-    matchChatroomQueue.set(chatroom, queRoom)
-    socket.join(queRoom)
-    socket.emit('socketapi/user/join/v1', {
-        "chatroom": queRoom
-    })
-    return queRoom
-}
-const matchMatch = (socket: Socket, socketClient: SocketClient) => {
-
-    const matchFunction = matchChatroomQueue.get(socketClient.chatroom) === undefined
-        ? queMatchChatroom
-        : getMatchChatroom
-    matchFunction(socket, socketClient.chatroom)
-}
-
-const joinChatroom = (socket: Socket, request: SocketClient) => {
+const joinChatroom = (io: Server, socket: Socket, request: SocketClient) => {
+    /** 要讓 socket join chatroom && 建立 MQ channel */
     try {
+        console.log(`socket join:`,request)
         const socketClient = $z.SocketClient.parse(request)
-        
-        /** 確認 User Chatroom join 行為 */
-        socketClient.chatroom === ""
-            ? randomMatch(socket, "")
-            : matchMatch(socket, socketClient)
-        console.log(`joinChatroom: `, socketClient)
+        socket.join(socketClient.chatroom)
+
+        $MQ.queueConsumer(socketClient.chatroom, (msg: string, io) => {
+            io.to(socketClient.chatroom).emit('msg', msg);
+        })
+        console.log(`開啟 MQ channel`)
     } catch (e) {
         console.log(e)
         socket.emit('socketapi/user/join/v1', e)

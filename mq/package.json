@@ -1,0 +1,20 @@
+{
+  "name": "mq",
+  "version": "1.0.0",
+  "main": "app.js",
+  "scripts": {
+    "send": "nodemon send.js",
+    "get": "nodemon get.js"
+  },
+  "author": "Matt.tw",
+  "license": "MIT",
+  "description": "",
+  "dependencies": {
+    "amqplib": "^0.10.4",
+    "express": "^4.21.1",
+    "redis": "^4.7.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.7"
+  }
+}

@@ -1,7 +1,6 @@
 import { Router, Request, Response } from "express";
 import * as $z from "../schema/check";
 import * as $auth from "../auth";
-import { broadcastMessage } from "../socket";
 const authRouter = Router();
 
 authRouter.post('/service/user/v1', (req: Request, res: Response) => {
