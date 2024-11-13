@@ -1,31 +1,25 @@
 import { Server, Socket } from "socket.io";
-import { v4 as uuidv4 } from 'uuid'
-import { string, z } from 'zod'
-import dotenv from 'dotenv'
-import amqp from 'amqplib/callback_api'
-import * as $z from './schema/check'
-dotenv.config()
+import { v4 as uuidv4 } from 'uuid';
+import dotenv from 'dotenv';
+import * as $z from './schema/check';
+dotenv.config();
 
-import * as $auth from './auth'
-import { $MQ } from './rabbitmq'
-
+import * as $auth from './auth';
+import { $MQ } from './rabbitmq';
 
 export interface SocketClient {
-    userid: string
-    chatroom: string
+    userid: string;
+    chatroom: string;
 }
 interface ChatMessage {
-    userid: string
-    msg: string
+    userid: string;
+    msg: string;
 }
 export interface ChatRoom {
-    chatroom: string
-    clients: string[]
-    history: ChatMessage[]
+    chatroom: string;
+    clients: string[];
+    history: ChatMessage[];
 }
-
-let randomChatroomQueue : string = "";
-let matchChatroomQueue : Map<string, string> = new Map()
 
 let SocketServer: {
     userData: Map<string, string>,
@@ -33,50 +27,51 @@ let SocketServer: {
 } = {
     userData: new Map<string, string>(),
     chatroomData: new Map<string, ChatRoom>()
-}
+};
 
 export function handleConnection(io: Server) {
     return (socket: Socket) => {
         try {
-            // JWT verify
-            let token = $z.JWT.parse(socket.handshake.headers['token'])
-            $auth.jwtVerify(token)
+            // JWT 驗證
+            let token = $z.JWT.parse(socket.handshake.headers['token']);
+            $auth.jwtVerify(token);
 
             socket.on('socketapi/user/connection/test', () => {
-                socket.emit('socketapi/user/connection/test', 'test')
-            })
-            // user join chatroom
-            socket.on('socketapi/user/join/v1', (request: SocketClient, io) => {
-                console.log(`socketapi join: `,request)
-                joinChatroom(io, socket, request)
-            })
-    
-            // user disconnect
+                socket.emit('socketapi/user/connection/test', 'test');
+            });
+            // 用戶加入聊天室
+            socket.on('socketapi/user/join/v1', (request: SocketClient) => {
+                console.log(`socketapi join: `, request);
+                joinChatroom(io, socket, request);
+            });
+
+            // 用戶斷開連接
             socket.on('socketapi/user/disconnect/v1', () => {
-                // socket 全部 disconnect
-                socket.disconnect()
-            })
+                // socket 全部斷開
+                socket.disconnect();
+            });
         } catch (e) {
-            console.log("JWT type error",e)
-            socket.emit('socketapi/user/connect/v1', e)
-            socket.disconnect()
+            console.log("JWT type error", e);
+            socket.emit('socketapi/user/connect/v1', e);
+            socket.disconnect();
         }
-    }
+    };
 }
 
 const joinChatroom = (io: Server, socket: Socket, request: SocketClient) => {
-    /** 要讓 socket join chatroom && 建立 MQ channel */
+    /** 讓 socket 加入聊天室並建立 MQ 訂閱 */
     try {
-        console.log(`socket join:`,request)
-        const socketClient = $z.SocketClient.parse(request)
-        socket.join(socketClient.chatroom)
+        console.log(`socket join:`, request);
+        const socketClient = $z.SocketClient.parse(request);
+        socket.join(socketClient.chatroom);
 
-        $MQ.queueConsumer(socketClient.chatroom, (msg: string, io) => {
+        // 訂閱指定的 Exchange
+        $MQ.subscribe(socketClient.chatroom, (msg: string) => {
             io.to(socketClient.chatroom).emit('msg', msg);
-        })
-        console.log(`開啟 MQ channel`)
+        });
+        console.log(`開啟 MQ 訂閱`);
     } catch (e) {
-        console.log(e)
-        socket.emit('socketapi/user/join/v1', e)
+        console.log(e);
+        socket.emit('socketapi/user/join/v1', e);
     }
-}
+};

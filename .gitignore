@@ -4,3 +4,12 @@ dist
 helm/
 monitor/
 secret/
+iac/
+mq/
+queue/
+*.yaml
+*.yml
+app.js
+Dockerfile
+*key.json
+AA.md
